@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MiTi | Cyber Space</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Vazirmatn:wght@300;700;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background: #0a0a0f;
+            color: #00ff88;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* Matrix Rain Canvas */
+        #matrixCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            opacity: 0.08;
+            pointer-events: none;
+        }
+
+        /* Glitch Text Effect */
+        .glitch-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+        .glitch-text {
+            font-family: 'Orbitron', monospace;
+            font-size: 5rem;
+            font-weight: 900;
+            color: #00ff88;
+            text-shadow: 0 0 10px #00ff88, 0 0 20px #00ff88, 0 0 40px #00ff88;
+            animation: glitch 3s infinite;
+            letter-spacing: 6px;
+        }
+        .glitch-text::before,
+        .glitch-text::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.7;
+        }
+        .glitch-text::before {
+            color: #ff00c1;
+            z-index: -1;
+            animation: glitch-offset 0.3s infinite linear alternate-reverse;
+        }
+        .glitch-text::after {
+            color: #00e5ff;
+            z-index: -2;
+            animation: glitch-offset2 0.4s infinite linear alternate-reverse;
+        }
+        @keyframes glitch {
+            2%, 64% { transform: translate(0,0); }
+            4%, 60% { transform: translate(-2px,2px); }
+            62% { transform: translate(3px,-1px); }
+        }
+        @keyframes glitch-offset {
+            0% { clip-path: inset(40% 0 61% 0); transform: translate(-3px,2px); }
+            20% { clip-path: inset(92% 0 1% 0); transform: translate(2px,-1px); }
+            40% { clip-path: inset(13% 0 78% 0); transform: translate(-1px,3px); }
+            60% { clip-path: inset(65% 0 22% 0); transform: translate(3px,1px); }
+            80% { clip-path: inset(77% 0 13% 0); transform: translate(-2px,-2px); }
+            100% { clip-path: inset(29% 0 55% 0); transform: translate(1px,2px); }
+        }
+        @keyframes glitch-offset2 {
+            0% { clip-path: inset(62% 0 17% 0); transform: translate(3px,-2px); }
+            20% { clip-path: inset(8% 0 84% 0); transform: translate(-1px,1px); }
+            40% { clip-path: inset(41% 0 32% 0); transform: translate(2px,3px); }
+            60% { clip-path: inset(89% 0 5% 0); transform: translate(-3px,-1px); }
+            80% { clip-path: inset(54% 0 31% 0); transform: translate(1px,-3px); }
+            100% { clip-path: inset(23% 0 66% 0); transform: translate(-2px,2px); }
+        }
+
+        /* Particles */
+        #particles-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Layout */
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: #00e5ff;
+            margin-top: 10px;
+            font-family: 'Orbitron', monospace;
+            letter-spacing: 4px;
+            text-shadow: 0 0 8px #00e5ff;
+        }
+
+        /* Scanline Overlay */
+        .scanline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0,0,0,0.15) 0px,
+                rgba(0,0,0,0.15) 1px,
+                transparent 1px,
+                transparent 3px
+            );
+            pointer-events: none;
+            z-index: 9998;
+        }
+
+        /* Cards */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 25px;
+            margin: 50px 0;
+        }
+
+        .card {
+            background: rgba(0, 20, 20, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            border-radius: 20px;
+            padding: 30px 20px;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        .card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(transparent, rgba(0,255,136,0.05), transparent 30%);
+            animation: spin-border 6s linear infinite;
+        }
+        @keyframes spin-border {
+            100% { transform: rotate(360deg); }
+        }
+        .card:hover {
+            border-color: #00ff88;
+            box-shadow: 0 0 30px rgba(0,255,136,0.3), inset 0 0 30px rgba(0,255,136,0.05);
+            transform: translateY(-8px) scale(1.02);
+        }
+        .card-icon {
+            font-size: 2.8rem;
+            margin-bottom: 15px;
+            color: #00e5ff;
+            text-shadow: 0 0 20px #00e5ff;
+        }
+        .card h3 {
+            font-family: 'Orbitron', monospace;
+            font-size: 0.85rem;
+            color: #00e5ff;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+        .card .value {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #00ff88;
+            text-shadow: 0 0 10px #00ff88;
+            word-break: break-all;
+            direction: ltr;
+            font-family: 'Orbitron', monospace;
+        }
+        .card .copy-btn {
+            margin-top: 15px;
+            background: transparent;
+            border: 1px solid #00ff88;
+            color: #00ff88;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-family: 'Vazirmatn', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.8rem;
+        }
+        .card .copy-btn:hover {
+            background: #00ff88;
+            color: #0a0a0f;
+            box-shadow: 0 0 20px #00ff88;
+        }
+
+        /* Fun Section */
+        .fun-section {
+            margin: 60px 0;
+        }
+        .fun-section h2 {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.8rem;
+            color: #00e5ff;
+            text-shadow: 0 0 15px #00e5ff;
+            margin-bottom: 30px;
+        }
+
+        .fun-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 25px;
+        }
+
+        .fun-card {
+            background: rgba(20, 0, 30, 0.5);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 0, 193, 0.2);
+            border-radius: 20px;
+            padding: 25px;
+            transition: 0.3s;
+        }
+        .fun-card:hover {
+            border-color: #ff00c1;
+            box-shadow: 0 0 25px rgba(255,0,193,0.2);
+        }
+        .fun-card h3 {
+            font-family: 'Orbitron', monospace;
+            color: #ff00c1;
+            font-size: 0.9rem;
+            letter-spacing: 2px;
+            margin-bottom: 15px;
+        }
+
+        /* Matrix Rain Box */
+        #matrix-rain-box {
+            background: #000;
+            border-radius: 12px;
+            padding: 10px;
+            height: 120px;
+            overflow: hidden;
+            font-family: 'Courier New', monospace;
+            font-size: 0.7rem;
+            line-height: 1.2;
+            color: #0f0;
+            text-align: left;
+            direction: ltr;
+        }
+
+        /* Hacker Typer */
+        #hacker-typer {
+            width: 100%;
+            height: 120px;
+            background: #000;
+            border: 1px solid #00ff88;
+            color: #00ff88;
+            font-family: 'Courier New', monospace;
+            font-size: 0.75rem;
+            padding: 10px;
+            border-radius: 12px;
+            resize: none;
+            direction: ltr;
+        }
+        #hacker-typer:focus {
+            outline: none;
+            box-shadow: 0 0 20px rgba(0,255,136,0.3);
+        }
+
+        /* Password Generator */
+        .pass-display {
+            background: #000;
+            padding: 12px;
+            border-radius: 10px;
+            direction: ltr;
+            font-family: 'Courier New', monospace;
+            font-size: 1.1rem;
+            color: #00ff88;
+            margin-bottom: 10px;
+            border: 1px solid #00ff88;
+            word-break: break-all;
+        }
+        .pass-btn {
+            background: transparent;
+            border: 1px solid #ff00c1;
+            color: #ff00c1;
+            padding: 7px 18px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-family: 'Vazirmatn', sans-serif;
+            transition: 0.3s;
+            margin: 4px;
+            font-size: 0.8rem;
+        }
+        .pass-btn:hover {
+            background: #ff00c1;
+            color: #0a0a0f;
+            box-shadow: 0 0 15px #ff00c1;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 80px;
+            padding: 30px 0;
+            border-top: 1px solid rgba(0,255,136,0.1);
+            font-family: 'Orbitron', monospace;
+            font-size: 0.75rem;
+            color: rgba(0,255,136,0.4);
+            letter-spacing: 3px;
+        }
+        footer .heart {
+            color: #ff00c1;
+            text-shadow: 0 0 10px #ff00c1;
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: rgba(0,255,136,0.15);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid #00ff88;
+            padding: 15px 35px;
+            border-radius: 50px;
+            font-family: 'Vazirmatn', sans-serif;
+            color: #00ff88;
+            font-size: 1rem;
+            opacity: 0;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 9999;
+            box-shadow: 0 0 30px rgba(0,255,136,0.2);
+            white-space: nowrap;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .glitch-text { font-size: 2.8rem; }
+            .container { padding: 20px 12px; }
+        }
+        @media (max-width: 480px) {
+            .glitch-text { font-size: 2rem; }
+            .card .value { font-size: 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Matrix Background Canvas -->
+    <canvas id="matrixCanvas"></canvas>
+
+    <!-- Particles Container -->
+    <div id="particles-container"></div>
+
+    <!-- Scanline Overlay -->
+    <div class="scanline"></div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast">✓ کپی شد!</div>
+
+    <!-- ====== MAIN CONTENT ====== -->
+    <div class="container">
+
+        <!-- Header -->
+        <div class="glitch-wrapper">
+            <h1 class="glitch-text" data-text="MiTi">MiTi</h1>
+        </div>
+        <p class="subtitle">// CYBER_UNDERGROUND //</p>
+        <p style="color: rgba(0,255,136,0.6); margin-top: 5px; font-size: 0.9rem;">
+            [ Ethical Hacker . Pentester . Digital Phantom ]
+        </p>
+
+        <!-- ============ Contact Cards ============ -->
+        <div class="cards-grid">
+
+            <!-- Instagram -->
+            <div class="card">
+                <div class="card-icon">📸</div>
+                <h3>Instagram</h3>
+                <div class="value" id="ig-value">Ofhemit</div>
+                <button class="copy-btn" onclick="copyToClipboard('Ofhemit')">📋 کپی</button>
+            </div>
+
+            <!-- Telegram ID -->
+            <div class="card">
+                <div class="card-icon">✈️</div>
+                <h3>Telegram ID</h3>
+                <div class="value" id="tg-id-value">Ztuav</div>
+                <button class="copy-btn" onclick="copyToClipboard('Ztuav')">📋 کپی</button>
+            </div>
+
+            <!-- Telegram Channel -->
+            <div class="card">
+                <div class="card-icon">📢</div>
+                <h3>Telegram Channel</h3>
+                <div class="value" id="tg-ch-value">Ofthemateo</div>
+                <button class="copy-btn" onclick="copyToClipboard('Ofthemateo')">📋 کپی</button>
+            </div>
+
+            <!-- Email -->
+            <div class="card">
+                <div class="card-icon">📧</div>
+                <h3>Email</h3>
+                <div class="value" id="email-value">m1t1@cybermail.io</div>
+                <button class="copy-btn" onclick="copyToClipboard('m1t1@cybermail.io')">📋 کپی</button>
+            </div>
+        </div>
+
+        <!-- ============ Fun Features ============ -->
+        <div class="fun-section">
+            <h2>⚡ // FUN_TERMINAL // ⚡</h2>
+
+            <div class="fun-grid">
+
+                <!-- Matrix Digital Rain -->
+                <div class="fun-card">
+                    <h3>◈ MATRIX RAIN</h3>
+                    <div id="matrix-rain-box"></div>
+                </div>
+
+                <!-- Hacker Typer -->
+                <div class="fun-card">
+                    <h3>◈ HACKER_TYPER</h3>
+                    <textarea id="hacker-typer" placeholder="[ هرجا بزنی کد هکری تایپ میشه ... ]"></textarea>
+                </div>
+
+                <!-- Password Generator -->
+                <div class="fun-card">
+                    <h3>◈ PASSWORD_GEN</h3>
+                    <div class="pass-display" id="pass-display">P@$$w0rd!Sec</div>
+                    <button class="pass-btn" onclick="generatePassword()">🎲 تولید</button>
+                    <button class="pass-btn" onclick="copyToClipboard(document.getElementById('pass-display').innerText)">📋 کپی</button>
+                </div>
+
+                <!-- Hacker Joke -->
+                <div class="fun-card">
+                    <h3>◈ JOKE_BOT</h3>
+                    <p id="joke-text" style="color: #00e5ff; font-size: 0.9rem; min-height: 60px;">چرا هکرها همیشه خوشحالن؟ چون همشون کرک کردن!</p>
+                    <button class="pass-btn" onclick="nextJoke()">🎭 یکی دیگه</button>
+                </div>
+
+                <!-- Status Checker -->
+                <div class="fun-card">
+                    <h3>◈ STATUS_CHECK</h3>
+                    <p style="color: #00ff88; font-size: 2rem; margin: 5px 0;" id="status-icon">🟢</p>
+                    <p id="status-text" style="color: rgba(0,255,136,0.7);">ALL SYSTEMS OK</p>
+                    <button class="pass-btn" onclick="toggleStatus()">🔄 تغییر وضعیت</button>
+                </div>
+
+                <!-- Live Clock -->
+                <div class="fun-card">
+                    <h3>◈ LIVE_CLOCK</h3>
+                    <p style="font-family: 'Orbitron', monospace; font-size: 1.6rem; color: #00ff88; text-shadow: 0 0 15px #00ff88; direction: ltr;" id="live-clock">00:00:00</p>
+                    <p style="color: rgba(0,255,136,0.4); font-size: 0.65rem;">UTC+3:30</p>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer>
+            <p>© 2026 <span class="heart">♥</span> MiTi &nbsp;|&nbsp; // ROOT_ACCESS_GRANTED //</p>
+        </footer>
+    </div>
+
+    <script>
+        // ============================================================
+        // MATRIX RAIN BACKGROUND
+        // ============================================================
+        const canvas = document.getElementById('matrixCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        const chars = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン0123456789ABCDEF<>/{}[]|&^%$#@!';
+        const fontSize = 14;
+        const columns = Math.floor(canvas.width / fontSize);
+        const drops = Array(columns).fill(1);
+
+        function drawMatrix() {
+            ctx.fillStyle = 'rgba(10, 10, 15, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#00ff88';
+            ctx.font = fontSize + 'px monospace';
+
+            for (let i = 0; i < drops.length; i++) {
+                const char = chars[Math.floor(Math.random() * chars.length)];
+                ctx.fillText(char, i * fontSize, drops[i] * fontSize);
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+                drops[i]++;
+            }
+        }
+        setInterval(drawMatrix, 50);
+
+        // ============================================================
+        // PARTICLES (CSS-only for Cloudflare compatibility)
+        // ============================================================
+        const particlesContainer = document.getElementById('particles-container');
+        const particleCount = 50;
+
+        for (let i = 0; i < particleCount; i++) {
+            const particle = document.createElement('div');
+            particle.style.cssText = `
+                position: absolute;
+                width: ${Math.random() * 3 + 1}px;
+                height: ${Math.random() * 3 + 1}px;
+                background: ${['#00ff88', '#00e5ff', '#ff00c1'][Math.floor(Math.random() * 3)]};
+                border-radius: 50%;
+                box-shadow: 0 0 8px currentColor;
+                left: ${Math.random() * 100}%;
+                top: ${Math.random() * 100}%;
+                animation: float-particle ${Math.random() * 8 + 6}s linear infinite;
+                animation-delay: ${Math.random() * 5}s;
+                opacity: ${Math.random() * 0.6 + 0.2};
+            `;
+            particlesContainer.appendChild(particle);
+        }
+
+        const styleSheet = document.createElement('style');
+        styleSheet.textContent = `
+            @keyframes float-particle {
+                0% { transform: translateY(0) translateX(0) scale(1); opacity: 0; }
+                10% { opacity: 1; }
+                90% { opacity: 1; }
+                100% { transform: translateY(-100vh) translateX(${Math.random() > 0.5 ? '' : '-'}50px) scale(0); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(styleSheet);
+
+        // ============================================================
+        // MATRIX RAIN BOX
+        // ============================================================
+        const rainBox = document.getElementById('matrix-rain-box');
+        function updateMatrixRain() {
+            let line = '';
+            for (let i = 0; i < 40; i++) {
+                line += String.fromCharCode(0x30A0 + Math.random() * 96) + ' ';
+            }
+            rainBox.innerHTML = line + '<br>' + rainBox.innerHTML;
+            if (rainBox.children.length > 6) {
+                rainBox.removeChild(rainBox.lastChild);
+            }
+        }
+        setInterval(updateMatrixRain, 200);
+
+        // ============================================================
+        // HACKER TYPER
+        // ============================================================
+        const typer = document.getElementById('hacker-typer');
+        const hackerTexts = [
+            'root@MiTi:~# nmap -sS -sV -O target.com\nStarting Nmap...\nPORT     STATE    SERVICE\n22/tcp   open     OpenSSH\n80/tcp   open     Apache\n443/tcp  open     nginx\n3306/tcp open     MySQL\n',
+            'root@MiTi:~# sqlmap -u "http://target.com?id=1" --dbs\n[INFO] testing connection to target\n[INFO] GET parameter id is vulnerable\n[INFO] retrieving database names\n[*] information_schema\n[*] users_db\n[*] admin_panel\n',
+            'root@MiTi:~# hydra -l admin -P rockyou.txt ssh://192.168.1.1\n[ATTEMPT] target 192.168.1.1 - login: admin - pass: 123456\n[ATTEMPT] target 192.168.1.1 - login: admin - pass: password\n[SUCCESS] login: admin pass: trustno1\n',
+            'root@MiTi:~# msfconsole\nmsf6 > use exploit/windows/smb/ms17_010_eternalblue\nmsf6 > set RHOSTS 10.10.10.10\nmsf6 > run\n[*] Started reverse TCP handler\n[+] SMB client native: Windows 7\n[+] Exploit completed!\n',
+            'root@MiTi:~# ./hashcat -m 1000 -a 0 hashes.txt rockyou.txt\nSession..........: hashcat\nStatus...........: Running\nHash.Mode........: 1000 (NTLM)\nSpeed.#1.........: 12.5 GH/s\nRecovered........: 142/1000 (14.2%)\n'
+        ];
+
+        typer.addEventListener('keydown', function(e) {
+            e.preventDefault();
+            const randomText = hackerTexts[Math.floor(Math.random() * hackerTexts.length)];
+            this.value += randomText;
+            this.scrollTop = this.scrollHeight;
+        });
+
+        // ============================================================
+        // PASSWORD GENERATOR
+        // ============================================================
+        function generatePassword() {
+            const length = 16 + Math.floor(Math.random() * 8);
+            const upper = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            const lower = 'abcdefghijklmnopqrstuvwxyz';
+            const digits = '0123456789';
+            const special = '!@#$%^&*()_+-=[]{}|;:,.<>?';
+            const all = upper + lower + digits + special;
+
+            let password = '';
+            password += upper[Math.floor(Math.random() * upper.length)];
+            password += lower[Math.floor(Math.random() * lower.length)];
+            password += digits[Math.floor(Math.random() * digits.length)];
+            password += special[Math.floor(Math.random() * special.length)];
+
+            for (let i = password.length; i < length; i++) {
+                password += all[Math.floor(Math.random() * all.length)];
+            }
+
+            password = password.split('').sort(() => Math.random() - 0.5).join('');
+            document.getElementById('pass-display').innerText = password;
+        }
+
+        // ============================================================
+        // JOKE BOT
+        // ============================================================
+        const jokes = [
+            'چرا هکرها همیشه خوشحالن؟ چون همشون کرک کردن!',
+            'بهترین زبان برنامه‌نویسی برای هکرا؟ HTML! چون همشون میخوان به سایتت HTML بزنن!',
+            'هکر به دوستش میگه: رمز وای فای رو عوض کردم، حالا از خونه همسایه استفاده کن!',
+            'چرا هکرا از زمستون متنفرن؟ چون برف رو دوست دارن ولی اسنو (snow) رو نه! (Sn0w)',
+            'هکرا مثل پیتزا میمونن: یک لایه رویین دارن و یک عالمه topping مخفی!',
+            'بهترین کار بعد از هک شدن؟ برو از اون سایت دیگه استفاده کن!',
+            'هکر به دکتر میگه: حالم بده. دکتر میگه: چکاره ای؟ میگه: هکر. دکتر میگه: آها، پس کرک شده ای!',
+            'چرا هکرا از عدد ۱۰ میترسن؟ چون ۹ از ۱۰ ترسید!',
+            'هکر بودن راحته: فقط باید ۰ و ۱ رو بلد باشی... و بقیه چیزا رو هم!',
+            'یه هکر میره خونه، میبینه همه چی هک شده! میگه: آها، خودم هک کرده بودم!'
+        ];
+        let jokeIndex = 0;
+
+        function nextJoke() {
+            jokeIndex = (jokeIndex + 1) % jokes.length;
+            document.getElementById('joke-text').innerText = jokes[jokeIndex];
+        }
+
+        // ============================================================
+        // STATUS CHECKER
+        // ============================================================
+        let statusOk = true;
+        function toggleStatus() {
+            statusOk = !statusOk;
+            const icon = document.getElementById('status-icon');
+            const text = document.getElementById('status-text');
+            if (statusOk) {
+                icon.innerText = '🟢';
+                text.innerText = 'ALL SYSTEMS OK';
+                text.style.color = 'rgba(0,255,136,0.7)';
+            } else {
+                icon.innerText = '🔴';
+                text.innerText = '⚠ INTRUSION DETECTED ⚠';
+                text.style.color = '#ff0044';
+            }
+        }
+
+        // ============================================================
+        // LIVE CLOCK
+        // ============================================================
+        function updateClock() {
+            const now = new Date();
+            const offset = 3.5 * 60 * 60 * 1000; // UTC+3:30
+            const local = new Date(now.getTime() + now.getTimezoneOffset() * 60 * 1000 + offset);
+            const h = String(local.getHours()).padStart(2, '0');
+            const m = String(local.getMinutes()).padStart(2, '0');
+            const s = String(local.getSeconds()).padStart(2, '0');
+            document.getElementById('live-clock').innerText = `${h}:${m}:${s}`;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // ============================================================
+        // CLIPBOARD & TOAST
+        // ============================================================
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                const toast = document.getElementById('toast');
+                toast.innerText = `✓ "${text}" کپی شد!`;
+                toast.classList.add('show');
+                setTimeout(() => toast.classList.remove('show'), 2500);
+            });
+        }
+
+        console.log('%c MiTi Cyber Space ', 'background: #0a0a0f; color: #00ff88; font-size: 2rem; font-weight: bold;');
+        console.log('%c // ROOT ACCESS GRANTED // ', 'background: #00ff88; color: #0a0a0f; font-size: 1rem;');
+    </script>
+</body>
+</html>
